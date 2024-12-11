@@ -1,0 +1,30 @@
+.header{
+    display: flex;
+    flex-direction: row;
+    align-items: center; 
+    justify-content: space-between;
+    height: 100px; 
+    padding: 0 20px; 
+    position: relative;
+    background-color: #f4f4f4;
+}
+
+.title {
+    flex-grow: 1;
+    text-align: center; 
+}
+
+.boton-atras {
+    background-color: transparent; // Fondo transparente
+    border: none; // Sin borde
+    cursor: pointer; // Cambia el cursor a pointer
+    font-size: 35px; // Tamaño de la flecha
+    color: #0b5a9f; // Color del botón
+    padding: 10px; // Espaciado interno
+
+    &:hover {
+        color: #00376b; // Color al hacer hover
+    }
+
+}
+

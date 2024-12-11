@@ -1,0 +1,20 @@
+$menu-bg-color: #f4f4f4;
+
+.header{
+    display: flex;
+    flex-direction: row;
+    align-items: center; 
+    justify-content: space-between;
+    height: 100px; 
+    padding: 0 20px; 
+    position: relative;
+    background-color: $menu-bg-color;
+}
+.hamburger {
+    position: relative; 
+}
+
+.title {
+    flex-grow: 1;
+    text-align: center; 
+}
