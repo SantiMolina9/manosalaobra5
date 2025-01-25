@@ -1,4 +1,11 @@
-.header{
+$menu-bg-color-light: #f4f4f4;
+$menu-bg-color-dark: #333;
+$text-color-light: #000;
+$text-color-dark: #fff;
+$button-hover-light: #00376b;
+$button-hover-dark: #77aaff;
+
+.header {
     display: flex;
     flex-direction: row;
     align-items: center; 
@@ -6,25 +13,34 @@
     height: 100px; 
     padding: 0 20px; 
     position: relative;
-    background-color: #f4f4f4;
-}
-
-.title {
-    flex-grow: 1;
-    text-align: center; 
+    background-color: var(--menu-bg-color, $menu-bg-color-light); // Fondo dinámico
+    color: var(--text-color, $text-color-light); // Texto dinámico
+    transition: background-color 0.3s ease, color 0.3s ease; // Transición suave
 }
 
 .boton-atras {
-    background-color: transparent; // Fondo transparente
-    border: none; // Sin borde
-    cursor: pointer; // Cambia el cursor a pointer
-    font-size: 35px; // Tamaño de la flecha
-    color: #0b5a9f; // Color del botón
-    padding: 10px; // Espaciado interno
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 35px;
+    color: var(--text-color, $text-color-light); // Color dinámico
+    padding: 10px;
 
     &:hover {
-        color: #00376b; // Color al hacer hover
+        color: var(--button-hover, $button-hover-light); // Hover dinámico
     }
+}
 
+.theme-toggle {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-color, $text-color-light); // Color dinámico
+    padding: 5px;
+
+    &:hover {
+        opacity: 0.8; // Efecto de hover
+    }
 }
 
