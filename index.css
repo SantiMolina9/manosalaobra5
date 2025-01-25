@@ -1,3 +1,29 @@
+:root {
+    --background-color: #ffffff;
+    --form-bg-color: #ffffff;
+    --text-color: #212121;
+    --header-bg-color: #e0e0e0;
+    --menu-bg-color-light: #ffffff;
+    --text-color: #212121;
+    --text-color-item-h2: #212121;;
+    --menu-bg-color-dark: #121212;
+    --add-button-color-hover: #bdbdbd;
+    --description-color: #555555;
+}
+
+[data-theme="dark"] {
+    --background-color: #212121;
+    --form-bg-color: #323232;
+    --text-color: #e0e0e0;
+    --header-bg-color: #0b5a9f;
+    --text-color-item-h2: #0b5a9f;
+    --add-button-color-hover: #084a83;
+    --description-color: #bdbdbd;
+}
+
 html{
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    overflow-x: hidden;
 }
+
+
