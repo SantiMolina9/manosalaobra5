@@ -1,7 +1,7 @@
 function Title({nombre}){
     return(
-        <div className = "title">
-            <h1>{nombre}</h1>
+        <div className = "title-container">
+            <h1 className="title">{nombre}</h1>
         </div>
     )
 }

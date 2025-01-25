@@ -14,9 +14,9 @@ $arrow-color: #0b5a9f;
 
     span {
         display: block;
-        width: 100%;
+        width: auto;
         height: 4px;
-        background-color: $link-color;
+        background-color: var(--text-color);
         margin: 6px 0;
         transition: all $transition-time ease-in-out;
     }
@@ -34,19 +34,25 @@ $arrow-color: #0b5a9f;
     }
 }
 
-// Flecha para volver
-.back-arrow {
+.back-arrow-box{
+    width: 40px;
+    height: 40px;
+}
+
+.back-arrow{
     cursor: pointer;
-    font-size: 45px;
+    position: static;
+    font-size: 35px;
+    display: inline-block;
     color: $arrow-color;
     position: absolute;
-    top: 0;
+    top: 14px;
     left: 18px;
     z-index: 1100;
 }
 
-// Menú lateral
-.menulateral {
+//Menú lateral
+.menulateral{
     position: fixed;
     top: 0;
     left: -100%;
@@ -101,4 +107,8 @@ $arrow-color: #0b5a9f;
         margin-top: auto;
         padding-top: 20px;
     }
+}
+
+.logo-app .app-logo{
+    width: 60px;
 }

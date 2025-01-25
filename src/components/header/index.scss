@@ -1,20 +1,72 @@
-$menu-bg-color: #f4f4f4;
+$menu-bg-color-light: #f4f4f4;
+$menu-bg-color-dark: #333;
+$text-color-light: #000;
+$text-color-dark: #fff;
 
-.header{
+.header {
     display: flex;
     flex-direction: row;
     align-items: center; 
     justify-content: space-between;
-    height: 100px; 
-    padding: 0 20px; 
     position: relative;
-    background-color: $menu-bg-color;
-}
-.hamburger {
-    position: relative; 
+    background-color: var(--menu-bg-color); // Fondo dinámico
+    color: var(--text-color); // Texto dinámico
+    transition: background-color 0.3s ease, color 0.3s ease; // Transición suave
 }
 
-.title {
+.hamburger {
+    position: relative; 
+    padding-top: 5px;
+    color: var(--text-color)
+}
+
+.title-container {
     flex-grow: 1;
-    text-align: center; 
+    text-align: center;
+    margin-right: 30px;
+}
+
+.title{
+    text-align: center;
+    padding-right: 30px;
+}
+
+.theme-toggle {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-color, $text-color-light); // Color dinámico
+    padding: 5px;
+
+    &:hover {
+        opacity: 0.8; // Efecto de hover
+    }
+}
+.header {
+    &-left {
+        display: flex;
+        align-items: center;
+        gap: 2em;
+    }
+
+    .app-logo {
+        color: var(--menu-bg-color);
+    }
+    }
+
+.logo-app {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    
+    .app-logo {
+        color: #0b5a9f;
+    }
+    
+    span {
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
 }
