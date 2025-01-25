@@ -1,73 +1,112 @@
 import './index.scss';
-import { useState } from 'react';
+import Logo from '../../components/Logo/Logo';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { Link } from 'react-router-dom';
+import { formVariants, itemFormVariants} from '../../utlis/framerVariants';
+import { motion } from 'framer-motion';
 import Title from '../../components/title';
 
 function Login() {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [errorMessage, setErrorMessage] = useState(''); // Estado para manejar el error
+    const { register, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const data = {
-            username: username,
-            password: password
-        };
-        
-        fetch("http://localhost:3000/login", {
+    const onSubmit = (data) => {
+        fetch("https://pweb-api-c0rq.onrender.com/login", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         })
         .then(res => res.json())
-        .then((data) => {
-            if (data.data && data.data.token) {
-                // Guardar el token y el userID en localStorage
-                localStorage.setItem('token', data.data.token);
-                localStorage.setItem('userID', data.data.user._id);
-                
-                // Redirigir a la ruta raíz
+        .then((response) => {
+            if (response.data && response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('userID', response.data.user._id); 
                 navigate('/');
             } else {
-                // Si no hay token, mostrar mensaje de error
-                setErrorMessage('Usuario o contraseña incorrectos');
+                alert('Usuario o contraseña incorrectos');
             }
         })
         .catch(err => {
             console.log(err);
-            setErrorMessage('Ocurrió un error en el servidor');
+            alert('Ocurrió un error en el servidor');
         });
     };
 
     return (
         <>
-        <div className="header">
-            <Title nombre={"Login"} />
-        </div>
-        <div className="box-login">
-            <form className="form-login" onSubmit={handleSubmit}>
-                <input 
-                    type="text" 
-                    placeholder="Username" 
-                    value={username} 
-                    onChange={(e) => setUsername(e.target.value)} 
-                    className="input-field"
-                />
-                <input 
-                    type="password" 
-                    placeholder="Password" 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    className="input-field"
-                />
-                <button type="submit" className="btn-login">Login</button>
-            </form>
-            {errorMessage && <p className="error-message">{errorMessage}</p>} {/* Mostrar el error si existe */}
-        </div>
+            <motion.div 
+                className="header"
+                initial="hidden" 
+                animate="visible"
+                variants={{
+                    hidden: { opacity: 0, y: -50 },
+                    visible: { opacity: 1, y: 0, transition: { duration: 1.1 } },
+                }}
+            >
+                <Logo size="60" />
+                <Title nombre="Login" />
+            </motion.div>
+            <div className="box-login">
+                <motion.form 
+                    className="form-login" 
+                    onSubmit={handleSubmit(onSubmit)}
+                    variants={formVariants}
+                    initial="hidden"
+                    animate="visible"
+                >
+                    <motion.h2 
+                        className="login-title" 
+                        variants={itemFormVariants}
+                    >
+                        Bienvenido a Project App
+                    </motion.h2>
+                    <motion.p 
+                        className="login-subtitle" 
+                        variants={itemFormVariants}
+                    >
+                        Inicia sesión para continuar
+                    </motion.p>
+
+                    <motion.div className="input-group" variants={itemFormVariants}>
+                        <input
+                            type="text"
+                            placeholder="Username"
+                            {...register('username', { required: 'El username es obligatorio' })}
+                            className={`input-field ${errors.username ? 'input-error' : ''}`}
+                        />
+                        {errors.username && <p className="error-message">{errors.username.message}</p>}
+                    </motion.div>
+
+                    <motion.div className="input-group" variants={itemFormVariants}>
+                        <input
+                            type="password"
+                            placeholder="Password"
+                            {...register('password', { required: 'La contraseña es obligatoria' })}
+                            className={`input-field ${errors.password ? 'input-error' : ''}`}
+                        />
+                        {errors.password && <p className="error-message">{errors.password.message}</p>}
+                    </motion.div>
+
+                    <motion.button 
+                        type="submit" 
+                        className="btn-login" 
+                        variants={itemFormVariants}
+                    >
+                        Iniciar sesión
+                    </motion.button>
+                    <motion.div 
+                        className='login-links'
+                        variants={itemFormVariants}
+                    >
+                        <Link to="/register" className='register-link'>
+                            Registrarse
+                        </Link>
+                    </motion.div>
+                </motion.form>
+            </div>
         </>
     );
 }
