@@ -1,0 +1,90 @@
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: var(--menu-bg-color);
+}
+
+.form-register {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--form-bg-color);
+    padding: 40px 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    max-width: 400px;
+    width: 100%;
+}
+
+.register-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: var(--text-color-item-h2);
+}
+
+.input-group {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.input-field {
+    width: 95%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+
+    &:focus {
+        border-color: #0b5a9f;
+        outline: none;
+    }
+}
+
+.input-error {
+    border-color: red;
+    background-color: #ffe6e6;
+}
+
+.error-message {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.btn-register {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    background-color: #0b5a9f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+        background-color: #084d83;
+    }
+}
+
+.register-links {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.forgot-password,
+.login-link {
+    font-size: 14px;
+    color: #0b5a9f;
+    text-decoration: none;
+    margin: 5px 0;
+    transition: color 0.3s ease;
+
+    &:hover {
+        color: #084d83;
+    }
+}
