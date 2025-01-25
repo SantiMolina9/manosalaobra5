@@ -10,6 +10,8 @@ export class GenericFormService {
 
     getEndpoint(id, parentId) {
         switch (this.entityType) {
+            case 'user':
+                return id ? endpoints.user(id) : endpoints.users;
             case 'project':
                 return id ? endpoints.project(id) : endpoints.projects;
             case 'epic':
@@ -34,6 +36,9 @@ export class GenericFormService {
         // Si es una creación y tenemos parentId, lo incluimos en los datos
         if (!editId && parentId) {
             switch (this.entityType) {
+                case 'project':
+                    data.owner = parentId;
+                    break;
                 case 'epic':
                     data.project = parentId;
                     break;

@@ -1,5 +1,5 @@
 class ApiService {
-  constructor(baseURL = 'http://localhost:3000') {
+  constructor(baseURL = 'https://pweb-api-c0rq.onrender.com') {
     this.baseURL = baseURL;
   }
 
@@ -34,6 +34,7 @@ class ApiService {
   }
 
   async post(endpoint, data) {
+    console.log(data)
     return this.request(endpoint, {
       method: 'POST',
       body: JSON.stringify(data)
