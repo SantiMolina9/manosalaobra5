@@ -1,10 +1,16 @@
 import HeaderBack from "../../components/HeaderBack";
+import Footer from '../../components/Footer'
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import CargandoComponent from "../../components/CargandoComponent";
 import './index.scss'
 import { useEffect, useState } from "react";
+import { formConfigs } from "../../utlis/formConfigs";
+import { GenericFormService } from '../../utlis/genericFormService';
+import { api, endpoints } from '../../utlis/apiService';
+import { containerVariants, itemVariants, buttonVariants } from "../../utlis/framerVariants";
+import { motion } from "framer-motion"
 
 function Epics(){
     const { projectID } = useParams();
@@ -16,94 +22,51 @@ function Epics(){
 
     const {
         register, handleSubmit, reset, formState:{errors}
-    } = useForm();
+    } = useForm({
+        defaultValues: formConfigs.epic.defaultValues
+    });
 
+    const epicService = new GenericFormService('epic', api);
 
     useEffect(() => {
-        fetch(`http://localhost:3000/projects/${projectID}/epics`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'auth': localStorage.getItem('token')
+        const fetchEpics = async () => {
+            try {
+                const response = await api.get(endpoints.projectEpics(projectID));
+                setEpics(response.data);
+                setProjectName(response.projectName);
+            } catch (error) {
+                console.error('Error fetching epics:', error);
+            } finally {
+                setIsLoading(false);
             }
-        })
-        .then(res => res.json())
-        .then(data => {
-            setEpics(data.data) 
-            setProjectName(data.projectName)
-            setIsLoading(false);
-        })
-    }, [projectID])
+        }
+        fetchEpics();
+    }, [projectID, epicService])
 
     const onSubmit = (data) => {
-        if (editEpic) {
-            // Editar proyecto existente
-            fetch(`http://localhost:3000/epics/${editEpic._id}`, {
-                method: 'PUT', // Método PUT para actualizar
-                headers: {
-                    'Content-Type': 'application/json',
-                    auth: localStorage.getItem('token'),
-                },
-                body: JSON.stringify(data),
-            })
-                .then((res) => res.json())
-                .then((updatedEpic) => {
-                    setEpics((prev) =>
-                        prev.map((epic) =>
-                            epic._id === updatedEpic.data._id ? updatedEpic.data : epic
-                        )
-                    );
-                    setEditEpic(null);
-                    reset();
-                    setShowForm(false);
-                })
-                .catch((error) => console.error('Error actualizando la epica:', error));
-        } else{
-            fetch(`http://localhost:3000/epics`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    auth: localStorage.getItem('token'),
-                },
-                body: JSON.stringify({
-                    name: data.name,
-                    description: data.description,
-                    project: projectID,
-                }),
-            })
-            .then((res) => res.json())
-            .then((newEpic) => {
-                setEpics((prev) => [...prev, newEpic.data]);
-                reset();
-                setShowForm(false);
-            })
-            .catch((error) => {
-                console.log("Datos enviados:", { ...data, project: projectID });
-                console.log("Error: " + error)
-            })
+        try{
+            const response = epicService.handleSubmit(data, editEpic ? editEpic._id : null, projectID)
+            if(editEpic){
+                setEpics((prev) => prev.map((epic) => epic._id === response._id ? response : epic));
+        }else{
+            setEpics((prev) => [...prev, response]);
         }
+        reset();
+        setShowForm(false);
+    } catch (error) {
+        console.error('Error submitting project:', error);
+    }
     }
 
-    const handleDelete = (epicID) => {
-        if (!window.confirm('Estas seguro de eliminar este proyecto?')) return;
+    const handleDelete = async (epicID) => {
+        if (!window.confirm('Estas seguro de eliminar esta epica?')) return;
     
-        fetch(`http://localhost:3000/epics/${epicID}`, {
-            method: 'DELETE',
-            headers: {
-                "Content-Type": 'application/json',
-                auth: localStorage.getItem('token'),
-            }
-        })
-        .then((res) => {
-            if (!res.ok) {
-                throw new Error("No se pudo eliminar el proyecto");
-            }
-            return res.json();
-        })
-        .then(() => {
+        try {
+            await epicService.handleDelete(epicID);
             setEpics((prev) => prev.filter((epic) => epic._id !== epicID));
-        })
-        .catch((error) => console.error("Error eliminando la epica: ", error));
+        } catch (error) {
+            console.error("Error eliminando la epica: ", error);
+        }
     }
 
     const handleEdit = (epic) => {
@@ -114,41 +77,64 @@ function Epics(){
     return (
         <>
         <HeaderBack titulo = {`Proyecto: ${projectName}`}/>
-        <div className = "buttons-container">
-            <button className = "crear-epica" type = "button" onClick = {() => setShowForm(true)} >Agregar Epica</button>
+        <div className = "add-button-container">
+            <motion.button 
+                className = "add-button" 
+                type = "button" 
+                onClick = {() => setShowForm(true)}
+                variants = {buttonVariants}
+                initial = "hidden"
+                animate = "visible"
+                >Agregar Epica ✴️
+            </motion.button>
         </div>
+        <ul className = "list">
         {
             isLoading ?
             <CargandoComponent/>
             :
-            epics.length ?  
-                epics.map((epica) => 
-                <li key = {epica._id} className = "item-epicas">
-                <Link key = {epica._id} to = {`/my-projects/${projectID}/${epica._id}`} className = "epica">
-                <h2>{epica.name}</h2>
-                <p><strong>{epica.description}</strong></p>
-                </Link>
-                <div className="button-group">
-                    <button className = "button-delete" type="button" onClick = {() => {handleDelete(epica._id)} }>🗑️</button>
-                    <button id = "editar" className = "editar-proyecto" type = "button" onClick={() => {handleEdit(epica)}}>✏️</button>
-                </div>
-                </li>
-            )
+            epics.length > 0 ?
+                <motion.div
+                    variants = {containerVariants}
+                    initial = "hidden"
+                    animate = "visible"
+                >
+                {
+                    epics.map((epica) => 
+                    <motion.li
+                        key = {epica._id} 
+                        className = "items"
+                        variants = {itemVariants}
+                    >
+                    <Link key = {epica._id} to = {`/my-projects/${projectID}/${epica._id}`} className = "item">
+                    <h2>{epica.name}</h2>
+                    <p><strong>{epica.description}</strong></p>
+                    </Link>
+                    <div className="button-group">
+                        <button className = "button-delete" type="button" onClick = {() => {handleDelete(epica._id)} }>🗑️</button>
+                        <button className = "button-edit" type = "button" onClick={() => {handleEdit(epica)}}>✏️</button>
+                    </div>
+                    </motion.li>
+                )}
+            </motion.div>
             :
-            <div className="cero-items">
-                No contiene epicas
+            <div className="cero-items-container">
+                <h2 className = "cero-items">
+                    No contiene epicas
+                </h2>
             </div>
         }
+        </ul>
         {showForm && (
                 <div className="popup-form">
                     <div className="popup-content">
-                        <h2>Agregar Nueva Épica</h2>
+                        <h2>{editEpic ? "Editar Epica" : "Agregar Epica"}</h2>
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <div className="form-group">
                                 <label htmlFor="name">Nombre de la Épica</label>
                                 <input
                                     id="name"
-                                    {...register("name", { required: "Nombre es obligatorio" })}
+                                    {...register("name", formConfigs.epic.validationRules.name)}
                                 />
                                 {errors.name && <p className="errors">{errors.name.message}</p>}
                             </div>
@@ -156,28 +142,29 @@ function Epics(){
                                 <label htmlFor="description">Descripción</label>
                                 <textarea
                                     id="description"
-                                    {...register("description", {
-                                        required: "Descripción es obligatoria",
-                                    })}
+                                    {...register("description", formConfigs.epic.validationRules.description)}
                                 ></textarea>
                                 {errors.description && <p className="errors">{errors.description.message}</p>}
                             </div>
                             <div className="buttons">
-                                <button type="submit">Guardar</button>
+                                <button className = "save-button" type="submit">✔</button>
                                 <button
+                                    className = "cancel-button"
                                     type="button"
                                     onClick={() => {
                                         setShowForm(false); // Cierra el popup
                                         reset(); // Resetea el formulario
+                                        setEditEpic(null); // Resetea el proyecto a editar
                                     }}
                                 >
-                                    Cancelar
+                                    ✘
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
+            <Footer />
         </>
     )
 }

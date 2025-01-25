@@ -1,10 +1,17 @@
-import { useParams } from "react-router-dom";
 import HeaderBack from "../../components/HeaderBack";
+import Footer from '../../components/Footer'
+import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import CargandoComponent from "../../components/CargandoComponent";
 import "./index.scss"
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { formConfigs } from "../../utlis/formConfigs";
+import { GenericFormService } from '../../utlis/genericFormService';
+import { api, endpoints } from '../../utlis/apiService';
+import { containerVariants, itemVariants, buttonVariants } from "../../utlis/framerVariants";
+import { motion } from "framer-motion";
+
 function Stories(){
     const { projectID } = useParams();
     const { epicID } = useParams();
@@ -21,106 +28,49 @@ function Stories(){
         formState: {errors},
     } = useForm();
 
+    const storyService = new GenericFormService('story', api);
+    
     useEffect(() => {
-        fetch(`http://localhost:3000/epics/${epicID}/stories`, {
-            method: 'GET', 
-            headers: {
-                'Content-Type': 'application/json', 
-                'auth': localStorage.getItem('token')
+        const fetchStories = async () => {
+            try {
+                const response = await api.get(endpoints.epicStories(epicID));
+                setStories(response.data);
+                setEpicName(response.epicName);
+            } catch (error) {
+                console.error('Error fetching stories:', error);
+            } finally {
+                setIsLoading(false);
             }
-        })
-        .then(res => res.json())
-        .then(data => {
-            setStories(data.data) 
-            setEpicName(data.epicName) 
-            setIsLoading(false);
-            }
-        )
-        .catch((error) => {
-            console.error('Error fetching projects:', error)
-            setIsLoading(false);
-        });
-    }, [epicID])
+        }
+        fetchStories()
+    }, [epicID, storyService])
     
 
     const onSubmit = (data) => {
-        if (editStory) {
-            // Editar proyecto existente
-            fetch(`http://localhost:3000/stories/${editStory._id}`, {
-                method: 'PUT', // Método PUT para actualizar
-                headers: {
-                    'Content-Type': 'application/json',
-                    auth: localStorage.getItem('token'),
-                },
-                body: JSON.stringify({
-                    name: data.name,
-                    description: data.description,
-                    epic: epicID,
-                    started: data.start,
-                    finished: data.finished,
-                    status: data.status
-                }),
-            })
-                .then((res) => res.json())
-                .then((updatedStory) => {
-                    setStories((prev) =>
-                        prev.map((story) =>
-                            story._id === updatedStory.data._id ? updatedStory.data : epic
-                        )
-                    );
-                    setEditStory(null);
-                    reset();
-                    setShowForm(false);
-                })
-                .catch((error) => console.error('Error actualizando la historia:', error));
-        } else{
-        fetch(`http://localhost:3000/stories`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                auth: localStorage.getItem('token'),
-            },
-            body: JSON.stringify({
-                name: data.name,
-                description: data.description,
-                epic: epicID,
-                started: data.start,
-                finished: data.finished,
-                status: data.status
-            }),
-        })
-        .then((res) => res.json())
-        .then((newStory) => {
-            setStories((prev) => [...prev, newStory.data]);
-            reset();
-            setShowForm(false);
-        })
-        .catch((error) => {
-            console.log("Error: " + error)
-        })
+        try{
+            const response = storyService.handleSubmit(data, editStory ? editStory._id : null, epicID)
+            if(editStory){
+                setStories((prev) => prev.map((story) => story._id === response._id ? response : story));
+                setEpicName(response.epicName);
+        } else {
+            setStories((prev) => [...prev, response]);
+        }
+        reset();
+        setShowForm(false);
+    } catch(error){
+        console.error('Error submitting Story:', error);
     }
-    }
+}
     
-    const handleDelete = (storyID) => {
-        if (!window.confirm('Estas seguro de eliminar este proyecto?')) return;
+    const handleDelete = async (storyID) => {
+        if (!window.confirm('Estas seguro de eliminar esta historia?')) return;
     
-        fetch(`http://localhost:3000/stories/${storyID}`, {
-            method: 'DELETE',
-            headers: {
-                "Content-Type": 'application/json',
-                auth: localStorage.getItem('token'),
-            }
-        })
-        .then((res) => {
-            if (!res.ok) {
-                throw new Error("No se pudo eliminar la historia");
-            }
-            return res.json();
-        })
-        .then(() => {
-            setStories((prev) => prev.filter((story) => story._id !== storyID));
-        })
-        .catch((error) => console.error("Error eliminando la historia: ", error));
+        try {
+            await storyService.handleDelete(storyID);
+            setStories((prev) => prev.filter((story) => story._id !== epicID));
+        } catch (error) {
+            console.error("Error eliminando la story: ", error);
+        }
     }
     
     const handleEdit = (story) => {
@@ -131,51 +81,77 @@ function Stories(){
             description: story.description,
             started: story.start,
             finished: story.finished,
-            status: story.status
+            status: story.status,
+            epic: epicID
         })
         setShowForm(true);
     }
     return(
         <>
         <HeaderBack titulo = {`Epica: ${epicName}`}/>
-        <div className = "buttons-container">
-            <button onClick = {() => {setShowForm(true)}} className = "crear-historia" type = "button">Agregar Historia</button>
+        <div className = "add-button-container">
+            <motion.button 
+                onClick = {() => {setShowForm(true)}} 
+                className = "add-button" 
+                type = "button"
+                variants = {buttonVariants}
+                initial = "hidden"
+                animate = "visible"
+                >
+                    Agregar Historia ✴️
+            </motion.button>
         </div>
+        <ul className = "list">
         {
             isLoading ?
             <CargandoComponent/>
             :
-            stories.length ? stories.map((story) => 
-                <li key = {story._id} className = "item-stories">
-                <Link to = {`/my-projects/${projectID}/${epicID}/${story._id}`} className = "stories">
-                <h2>{story.name}</h2>
-                <p><strong>{story.description}</strong></p>
-                <p><strong>Inicio:</strong> {story.started}</p>
-                <p><strong>Termina:</strong> {story.finished}</p>
-                <p><strong>Creada:</strong> {story.created}</p>
-                <p><strong>Estado:</strong> {story.status}</p>
-                </Link>
-                <div className="button-group">
-                <button className = "button-delete" type="button" onClick = {() => {handleDelete(story._id)}}>🗑️</button>
-                <button id = "editar" className = "editar-proyecto" type = "button" onClick={() => handleEdit(story)}>✏️</button>
-                </div>
-                </li>
-            )
+            stories.length > 0 ?
+                <motion.div
+                    variants={containerVariants}
+                    initial = "hidden"
+                    animate = "visible"
+                >
+                {
+                    stories.map((story) =>
+                        <motion.li
+                        key = {story._id} 
+                        className = "items"
+                        variants = {itemVariants}
+                        >
+                        <Link to = {`/my-projects/${projectID}/${epicID}/${story._id}`} className = "item">
+                        <h2>{story.name}</h2>
+                        <p><strong>{story.description}</strong></p>
+                        <p><strong>Inicio:</strong> {story.started}</p>
+                        <p><strong>Termina:</strong> {story.finished}</p>
+                        <p><strong>Creada:</strong> {story.created}</p>
+                        <p><strong>Estado:</strong> {story.status}</p>
+                        </Link>
+                        <div className = "button-group">
+                        <button className = "button-delete" type="button" onClick = {() => {handleDelete(story._id)}}>🗑️</button>
+                        <button id = "editar" className = "button-edit" type = "button" onClick={() => handleEdit(story)}>✏️</button>
+                        </div>
+                        </motion.li>
+                )}
+            </motion.div>
         :
-        <div className="cero-items">
-            No contiene Historias
+        <div className="cero-items-container">
+            <h2 className="cero-items">
+                No contiene Historias
+            </h2>
         </div>
         }
+        </ul>
         {showForm && (
                 <div className="popup-form">
                     <div className="popup-content">
-                        <h2>Agregar Nueva Historia</h2>
+                        <h2>{editStory ? "Editar Historia" : "Agregar Historia"}</h2>
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <div className="form-group">
                                 <label htmlFor="name">Nombre de la Historia</label>
                                 <input
                                     id="name"
-                                    {...register("name", { required: "Nombre es obligatorio" })}
+                                    {...register("name", formConfigs.story.validationRules.name)}
                                 />
                                 {errors.name && <p className="errors">{errors.name.message}</p>}
                             </div>
@@ -183,17 +159,15 @@ function Stories(){
                                 <label htmlFor="description">Descripción</label>
                                 <textarea
                                     id="description"
-                                    {...register("description", {
-                                        required: "Descripción es obligatoria",
-                                    })}
+                                    {...register("description", formConfigs.story.validationRules.description)}
                                 ></textarea>
                                 {errors.description && <p className="errors">{errors.description.message}</p>}
                             </div>
                             <div className="form-group">
-                                <label htmlFor="start">Fecha de inicio</label>
+                                <label htmlFor="started">Fecha de inicio</label>
                                 <input
-                                id="start"
-                                {...register("start", {
+                                id="started"
+                                {...register("started", {
                                     required: "La fecha de inicio es obligatoria"
                                 })}
                                 type="date"></input>
@@ -213,7 +187,7 @@ function Stories(){
                                 <label htmlFor="status">Estado de la Historia</label>
                                 <select
                                 id="status"
-                                {...register("status", { required: true })}>
+                                {...register("status", formConfigs.story.validationRules.status)}>
                                     <option value="todo">To Do</option>
                                     <option value="running">Running</option>
                                     <option value="done">Done</option>
@@ -221,21 +195,23 @@ function Stories(){
                                 {errors.status && <p className="errors">{errors.status.message}</p>}
                             </div>
                             <div className="buttons">
-                                <button type="submit">Guardar</button>
+                                <button className = "save-button" type="submit">✔</button>
                                 <button
+                                    className = "cancel-button"
                                     type="button"
                                     onClick={() => {
                                         setShowForm(false); // Cierra el popup
                                         reset(); // Resetea el formulario
                                     }}
                                 >
-                                    Cancelar
+                                    ✘
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
+            <Footer />
         </>
     )
 }
