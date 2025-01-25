@@ -3,7 +3,7 @@
     background-color: var(--menu-bg-color);
 
     .main-content {
-        padding: 2rem;
+        padding: 0.5rem;
         max-width: 100%;
         margin: 0 auto;
     }
@@ -14,9 +14,15 @@
 
         h1 {
             font-size: 2.5rem;
-            color: #0b5a9f;
+            color: var(--text-color);
             margin-bottom: 1.5rem;
             font-weight: bold;
+        }
+
+        h2{
+            font-size: 1.5rem;
+            color: var(--description-color);
+            margin-bottom: 1.5rem;
         }
 
         .description {

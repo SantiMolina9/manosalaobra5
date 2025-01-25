@@ -1,59 +1,29 @@
 import Header from "../../components/header";
 import Footer from '../../components/Footer';
 import './index.scss';
+import { useEffect, useState } from "react";
+import {api, endpoints} from '../../utlis/apiService';
+import { containerVariants, itemVariants, imageVariants, h1Variants } from "../../utlis/framerVariants";
 import { motion } from 'framer-motion';
 
 function Home() {
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 }, // Elemento está oculto y desplazado hacia abajo
-        visible: {
-            opacity: 1,
-            y: 0, // Elemento visible y en su posición final
-            transition: {
-                duration: 0.8, // Animación más lenta
-                ease: "easeInOut", // Suavidad en la entrada y salida
-            },
-        },
-    };
+    const [user, setUser] = useState({});
 
-    const h1Variants = {
-        hidden: {
-            opacity: 0,
-            y: -50, // Posición inicial por encima de la pantalla
-        },
-        visible: {
-            opacity: 1,
-            y: 0, // Posición final en su lugar original
-            transition: {
-                duration: 1.2, // Más duración para el h1
-                ease: "easeOut", // Transición suave
-            },
-        },
-    };
+    useEffect(() => {
+            const userID = localStorage.getItem('userID');
 
-    const containerVariants = {
-        hidden: { opacity: 0 }, // Estado inicial de los elementos
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.4, // Cascada más rápida
-                delayChildren: 0.2, // Pequeño retraso antes de iniciar
-            },
-        },
-    };
-
-    // Animación independiente para la imagen
-    const imageVariants = {
-        hidden: { opacity: 0, scale: 0.8 }, // Imagen inicial más pequeña y opaca
-        visible: {
-            opacity: 1,
-            scale: 1, // Imagen en tamaño real
-            transition: {
-                duration: 1.5, // Duración más larga
-                ease: "easeInOut", // Efecto de entrada y salida suave
-            },
-        },
-    };
+            const fetchUser = async () => {
+                try {
+                    const response = await api.get(endpoints.user(userID));
+                    setUser(response.data);
+                } catch (error) {
+                    console.error('Error fetching user:', error);
+                    setError('No se pudo cargar la información del usuario.');
+                }
+            };
+    
+            fetchUser();
+        }, []);
 
     return (
         <div className="home-container">
@@ -65,9 +35,10 @@ function Home() {
                     initial="hidden"
                     animate="visible"
                 >
-                    <motion.h1 variants={h1Variants}>
+                    <motion.h1 variants={h1Variants}>¡Bienvenido {user.username}!</motion.h1>
+                    <motion.h2 variants={h1Variants}>
                         Gestiona tus proyectos de forma simple
-                    </motion.h1>
+                    </motion.h2>
                     <motion.p 
                         className="description"
                         variants={itemVariants}
